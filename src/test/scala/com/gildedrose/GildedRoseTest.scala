@@ -64,6 +64,7 @@ class GildedRoseTest extends AnyFlatSpec with Matchers {
     extractItem(app.items(0)) should equal ("Sulfuras, Hand of Ragnaros", 1, 80)
     extractItem(app.items(1)) should equal ("Sulfuras, Hand of Ragnaros", 0, 80)
     extractItem(app.items(2)) should equal ("Sulfuras, Hand of Ragnaros", 0, 40)
+    extractItem(app.items(3)) should equal ("Sulfuras, Hand of Ragnaros", -1, 80)
   }
 
   "Backstage Items" should "update as expected" in {
