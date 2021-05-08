@@ -1,9 +1,11 @@
 package com.gildedrose
 
+import com.gildedrose.matchers.GildedRoseMatchers
+import org.scalatest.Inspectors.forAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class GildedRoseTest extends AnyFlatSpec with Matchers {
+class GildedRoseTest extends AnyFlatSpec with Matchers with GildedRoseMatchers {
 
   def extractItem(item: Item): (String, Int, Int) = (item.name, item.sellIn, item.quality)
 
@@ -18,7 +20,7 @@ class GildedRoseTest extends AnyFlatSpec with Matchers {
     val items = Array[Item]()
     val app = new GildedRose(items)
     app.updateQuality()
-    app.items.length should equal (0)
+    app.items shouldBe empty
   }
 
   // Coverage tests before refactoring
@@ -52,21 +54,6 @@ class GildedRoseTest extends AnyFlatSpec with Matchers {
     extractItem(app.items(5)) should equal ("Aged Brie", 0, 51)
   }
 
-  "Sulfuras Items" should "update as expected" in {
-    val items = Array[Item](
-      new Item("Sulfuras, Hand of Ragnaros", 1, 80),
-      new Item("Sulfuras, Hand of Ragnaros", 0, 80),
-      new Item("Sulfuras, Hand of Ragnaros", 0, 40),
-      new Item("Sulfuras, Hand of Ragnaros", -1, 80)
-    )
-    val app = new GildedRose(items)
-    app.updateQuality()
-    extractItem(app.items(0)) should equal ("Sulfuras, Hand of Ragnaros", 1, 80)
-    extractItem(app.items(1)) should equal ("Sulfuras, Hand of Ragnaros", 0, 80)
-    extractItem(app.items(2)) should equal ("Sulfuras, Hand of Ragnaros", 0, 40)
-    extractItem(app.items(3)) should equal ("Sulfuras, Hand of Ragnaros", -1, 80)
-  }
-
   "Backstage Items" should "update as expected" in {
     val items = Array[Item](
       new Item("Backstage passes to a TAFKAL80ETC concert", 11, 10),
@@ -94,5 +81,20 @@ class GildedRoseTest extends AnyFlatSpec with Matchers {
     extractItem(app.items(8)) should equal ("Backstage passes to a TAFKAL80ETC concert", 0, 50)
     extractItem(app.items(9)) should equal ("Backstage passes to a TAFKAL80ETC concert", 5, 50)
     extractItem(app.items(10)) should equal ("Backstage passes to a TAFKAL80ETC concert", 10, 50)
+  }
+
+  // More granular tests with the individual updateItem method
+  "updateItem" should "not change Sulfuras items" in {
+
+    val tests = List(
+      (new Item("Sulfuras, Hand of Ragnaros", 1, 80), ("Sulfuras, Hand of Ragnaros", 1, 80)),
+      (new Item("Sulfuras, Hand of Ragnaros", 0, 80), ("Sulfuras, Hand of Ragnaros", 0, 80)),
+      (new Item("Sulfuras, Hand of Ragnaros", 0, 40), ("Sulfuras, Hand of Ragnaros", 0, 40)),
+      (new Item("Sulfuras, Hand of Ragnaros", -1, 80), ("Sulfuras, Hand of Ragnaros", -1, 80))
+    )
+
+    forAll(tests) {
+      case (item, expected) => GildedRose.updateItem(item) should matchItemValues(expected)
+    }
   }
 }
