@@ -7,8 +7,6 @@ import org.scalatest.matchers.should.Matchers
 
 class GildedRoseTest extends AnyFlatSpec with Matchers with GildedRoseMatchers {
 
-  def extractItem(item: Item): (String, Int, Int) = (item.name, item.sellIn, item.quality)
-
   it should "foo" in {
     val items = Array[Item](new Item("foo", 0, 0))
     val app = new GildedRose(items)
@@ -21,6 +19,21 @@ class GildedRoseTest extends AnyFlatSpec with Matchers with GildedRoseMatchers {
     val app = new GildedRose(items)
     app.updateQuality()
     app.items shouldBe empty
+  }
+
+  "updateQuality" should "handle multple items" in {
+    val items = Array[Item](
+      new Item("Sulfuras, Hand of Ragnaros", 1, 80),
+      new Item("Aged Brie", 0, 10),
+      new Item("Backstage passes to a TAFKAL80ETC concert", 5, 10),
+      new Item("foo", 1, 10),
+    )
+    val app = new GildedRose(items)
+    app.updateQuality()
+    app.items(0) should matchItemValues("Sulfuras, Hand of Ragnaros", 1, 80)
+    app.items(1) should matchItemValues("Aged Brie", -1, 12)
+    app.items(2) should matchItemValues("Backstage passes to a TAFKAL80ETC concert", 4, 13)
+    app.items(3) should matchItemValues("foo", 0, 9)
   }
 
   // More granular tests with the individual updateItem method
