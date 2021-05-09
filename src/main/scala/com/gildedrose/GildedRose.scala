@@ -25,6 +25,7 @@ object GildedRose {
     itemValues match {
       case ("Sulfuras, Hand of Ragnaros", _, _) => item
       case ("Aged Brie", sellIn, quality) => updateBrie(sellIn, quality)
+      case ("Backstage passes to a TAFKAL80ETC concert", sellIn, quality) => updateBackstage(sellIn, quality)
       case _ => updateDefault(item)
     }
   }
@@ -45,40 +46,40 @@ object GildedRose {
     new Item("Aged Brie", sellIn - 1, newQuality)
   }
 
+  def updateBackstage(sellIn: Int, quality: Int): Item = {
+
+    if (sellIn <= 0) {
+      return new Item("Backstage passes to a TAFKAL80ETC concert", sellIn - 1, 0)
+    }
+
+    // A quirk from the original behaviour is that is doesn't cap to 50 if it's already over
+    if (quality >= 50) {
+      return new Item("Backstage passes to a TAFKAL80ETC concert", sellIn - 1, quality)
+    }
+
+    val increase = sellIn match {
+      case x if x <= 5 => 3
+      case x if x <= 10 => 2
+      case _ => 1
+    }
+    var newQuality = quality + increase
+
+    if (newQuality > 50) {
+      newQuality = 50
+    }
+    new Item("Backstage passes to a TAFKAL80ETC concert", sellIn - 1, newQuality)
+  }
+
   def updateDefault(item: Item): Item = {
-    if (!item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-      if (item.quality > 0) {
-        item.quality = item.quality - 1
-      }
-    } else {
-      if (item.quality < 50) {
-        item.quality = item.quality + 1
-
-        if (item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-          if (item.sellIn < 11) {
-            if (item.quality < 50) {
-              item.quality = item.quality + 1
-            }
-          }
-
-          if (item.sellIn < 6) {
-            if (item.quality < 50) {
-              item.quality = item.quality + 1
-            }
-          }
-        }
-      }
+    if (item.quality > 0) {
+      item.quality = item.quality - 1
     }
 
     item.sellIn = item.sellIn - 1
 
     if (item.sellIn < 0) {
-      if (!item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
-        if (item.quality > 0) {
-          item.quality = item.quality - 1
-        }
-      } else {
-        item.quality = item.quality - item.quality
+      if (item.quality > 0) {
+        item.quality = item.quality - 1
       }
     }
     item
