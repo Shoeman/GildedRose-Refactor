@@ -19,19 +19,19 @@ object GildedRose {
 
   def updateItem(item: Item): Item = {
 
-    val itemValues = extractItem(item)
-
-    itemValues match {
-      case ("Sulfuras, Hand of Ragnaros", _, _) => item
-      case ("Backstage passes to a TAFKAL80ETC concert", sellIn, quality) => updateBackstage(sellIn, quality)
-      case (name, sellIn, quality) => advanceItem(name, sellIn, quality)
+    item.name match {
+      case "Sulfuras, Hand of Ragnaros" => item
+      case _ => advanceItem(item)
     }
   }
 
-  def advanceItem(name: String, sellIn: Int, quality: Int): Item = {
+  def advanceItem(item: Item): Item = {
+
+    val (name, sellIn, quality) = extractItem(item)
 
     var newQuality = name match {
       case "Aged Brie" => brieQuality(sellIn, quality)
+      case "Backstage passes to a TAFKAL80ETC concert" => backstageQuality(sellIn, quality)
       case _ => adjustDefaultQuality(sellIn, quality)
     }
 
@@ -55,23 +55,14 @@ object GildedRose {
     newQuality
   }
 
-  val adjustBrieQuality: (Int, Int) => Int = adjustQuality(-1, -2)
-  val adjustDefaultQuality: (Int, Int) => Int = adjustQuality(1, 2)
-
-  def adjustQuality(normal: Int, overdue: Int)(sellIn: Int, quality: Int): Int = {
-    val decrease = if (sellIn > 0) normal else overdue
-    quality - decrease
-  }
-
-  def updateBackstage(sellIn: Int, quality: Int): Item = {
-
+  def backstageQuality(sellIn: Int, quality: Int): Int = {
     if (sellIn <= 0) {
-      return new Item("Backstage passes to a TAFKAL80ETC concert", sellIn - 1, 0)
+      return 0
     }
 
     // A quirk from the original behaviour is that is doesn't cap to 50 if it's already over
     if (quality >= 50) {
-      return new Item("Backstage passes to a TAFKAL80ETC concert", sellIn - 1, quality)
+      return quality
     }
 
     val increase = sellIn match {
@@ -84,6 +75,14 @@ object GildedRose {
     if (newQuality > 50) {
       newQuality = 50
     }
-    new Item("Backstage passes to a TAFKAL80ETC concert", sellIn - 1, newQuality)
+    newQuality
+  }
+
+  val adjustBrieQuality: (Int, Int) => Int = adjustQuality(-1, -2)
+  val adjustDefaultQuality: (Int, Int) => Int = adjustQuality(1, 2)
+
+  def adjustQuality(normal: Int, overdue: Int)(sellIn: Int, quality: Int): Int = {
+    val decrease = if (sellIn > 0) normal else overdue
+    quality - decrease
   }
 }
