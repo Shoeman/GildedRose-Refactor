@@ -25,8 +25,25 @@ object GildedRose {
       case ("Sulfuras, Hand of Ragnaros", _, _) => item
       case ("Aged Brie", sellIn, quality) => updateBrie(sellIn, quality)
       case ("Backstage passes to a TAFKAL80ETC concert", sellIn, quality) => updateBackstage(sellIn, quality)
-      case (name, sellIn, quality) => updateDefault(name, sellIn, quality)
+      case (name, sellIn, quality) => advanceItem(name, sellIn, quality)
     }
+  }
+
+  def advanceItem(name: String, sellIn: Int, quality: Int): Item = {
+
+    var newQuality = name match {
+      case _ => defaultQuality(sellIn, quality)
+    }
+
+    if (newQuality < 0) {
+      newQuality = 0
+    }
+    new Item(name, sellIn - 1, newQuality)
+  }
+
+  def defaultQuality(sellIn: Int, quality: Int): Int = {
+    val decrease = if (sellIn > 0) 1 else 2
+    quality - decrease
   }
 
   def updateBrie(sellIn: Int, quality: Int): Item = {
@@ -67,17 +84,5 @@ object GildedRose {
       newQuality = 50
     }
     new Item("Backstage passes to a TAFKAL80ETC concert", sellIn - 1, newQuality)
-  }
-
-  def updateDefault(name: String, sellIn: Int, quality: Int): Item = {
-
-    val increase = if (sellIn > 0) -1 else -2
-    var newQuality = quality + increase
-
-    if (newQuality < 0) {
-      newQuality = 0
-    }
-
-    new Item(name, sellIn - 1, newQuality)
   }
 }
