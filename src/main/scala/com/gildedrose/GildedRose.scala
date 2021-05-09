@@ -6,7 +6,6 @@ import com.gildedrose.GildedRose.updateItem
 class GildedRose(val items: Array[Item]) {
 
   def updateQuality() {
-
     for (i <- items.indices) {
       items(i) = updateItem(items(i))
     }
@@ -26,7 +25,7 @@ object GildedRose {
       case ("Sulfuras, Hand of Ragnaros", _, _) => item
       case ("Aged Brie", sellIn, quality) => updateBrie(sellIn, quality)
       case ("Backstage passes to a TAFKAL80ETC concert", sellIn, quality) => updateBackstage(sellIn, quality)
-      case _ => updateDefault(item)
+      case (name, sellIn, quality) => updateDefault(name, sellIn, quality)
     }
   }
 
@@ -70,22 +69,15 @@ object GildedRose {
     new Item("Backstage passes to a TAFKAL80ETC concert", sellIn - 1, newQuality)
   }
 
-  def updateDefault(item: Item): Item = {
+  def updateDefault(name: String, sellIn: Int, quality: Int): Item = {
 
-    var quality = item.quality
+    val increase = if (sellIn > 0) -1 else -2
+    var newQuality = quality + increase
 
-    if (quality > 0) {
-      quality -= 1
+    if (newQuality < 0) {
+      newQuality = 0
     }
 
-    val sellIn = item.sellIn - 1
-
-    if (sellIn < 0) {
-      if (quality > 0) {
-        quality -= 1
-      }
-    }
-    new Item( item.name, sellIn, quality )
+    new Item(name, sellIn - 1, newQuality)
   }
-
 }
