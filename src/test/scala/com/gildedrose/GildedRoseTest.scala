@@ -138,13 +138,23 @@ class GildedRoseTest extends AnyFlatSpec with Matchers with GildedRoseMatchers {
   }
 
   //Even more granular quality adjustment tests
-  "defaultQuality" should "alter by the correct amount" in {
+  "adjustDefaultQuality" should "alter by the correct amount" in {
     val tests = List(
       (1, 10, 9),
       (0, 10, 8),
     )
     forAll(tests) {
-      case (sellIn, quality, expected) => GildedRose.defaultQuality(sellIn, quality) should equal(expected)
+      case (sellIn, quality, expected) => GildedRose.adjustDefaultQuality(sellIn, quality) should equal(expected)
+    }
+  }
+
+  "adjustBrieQuality" should "alter by the correct amount" in {
+    val tests = List(
+      (1, 10, 11),
+      (0, 10, 12),
+    )
+    forAll(tests) {
+      case (sellIn, quality, expected) => GildedRose.adjustBrieQuality(sellIn, quality) should equal(expected)
     }
   }
 }

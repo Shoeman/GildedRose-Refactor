@@ -23,7 +23,6 @@ object GildedRose {
 
     itemValues match {
       case ("Sulfuras, Hand of Ragnaros", _, _) => item
-      case ("Aged Brie", sellIn, quality) => updateBrie(sellIn, quality)
       case ("Backstage passes to a TAFKAL80ETC concert", sellIn, quality) => updateBackstage(sellIn, quality)
       case (name, sellIn, quality) => advanceItem(name, sellIn, quality)
     }
@@ -32,7 +31,8 @@ object GildedRose {
   def advanceItem(name: String, sellIn: Int, quality: Int): Item = {
 
     var newQuality = name match {
-      case _ => defaultQuality(sellIn, quality)
+      case "Aged Brie" => brieQuality(sellIn, quality)
+      case _ => adjustDefaultQuality(sellIn, quality)
     }
 
     if (newQuality < 0) {
@@ -41,25 +41,26 @@ object GildedRose {
     new Item(name, sellIn - 1, newQuality)
   }
 
-  def defaultQuality(sellIn: Int, quality: Int): Int = {
-    val decrease = if (sellIn > 0) 1 else 2
-    quality - decrease
-  }
-
-  def updateBrie(sellIn: Int, quality: Int): Item = {
-
+  def brieQuality(sellIn: Int, quality: Int): Int = {
     // A quirk from the original behaviour is that is doesn't cap to 50 if it's already over
     if (quality >= 50) {
-      return new Item("Aged Brie", sellIn - 1, quality)
+      return quality
     }
 
-    val increase = if (sellIn > 0) 1 else 2
-    var newQuality = quality + increase
+    var newQuality = adjustBrieQuality(sellIn, quality)
 
     if (newQuality > 50) {
       newQuality = 50
     }
-    new Item("Aged Brie", sellIn - 1, newQuality)
+    newQuality
+  }
+
+  val adjustBrieQuality: (Int, Int) => Int = adjustQuality(-1, -2)
+  val adjustDefaultQuality: (Int, Int) => Int = adjustQuality(1, 2)
+
+  def adjustQuality(normal: Int, overdue: Int)(sellIn: Int, quality: Int): Int = {
+    val decrease = if (sellIn > 0) normal else overdue
+    quality - decrease
   }
 
   def updateBackstage(sellIn: Int, quality: Int): Item = {
