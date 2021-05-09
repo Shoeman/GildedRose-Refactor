@@ -71,18 +71,21 @@ object GildedRose {
   }
 
   def updateDefault(item: Item): Item = {
-    if (item.quality > 0) {
-      item.quality = item.quality - 1
+
+    var quality = item.quality
+
+    if (quality > 0) {
+      quality -= 1
     }
 
-    item.sellIn = item.sellIn - 1
+    val sellIn = item.sellIn - 1
 
-    if (item.sellIn < 0) {
-      if (item.quality > 0) {
-        item.quality = item.quality - 1
+    if (sellIn < 0) {
+      if (quality > 0) {
+        quality -= 1
       }
     }
-    item
+    new Item( item.name, sellIn, quality )
   }
 
 }

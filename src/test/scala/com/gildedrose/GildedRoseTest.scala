@@ -23,18 +23,6 @@ class GildedRoseTest extends AnyFlatSpec with Matchers with GildedRoseMatchers {
     app.items shouldBe empty
   }
 
-  // Coverage tests before refactoring
-  "Normal Items" should "update as expected" in {
-    val items = Array[Item](
-      new Item("foo", 1, 10),
-      new Item("foo", 0, 10)
-    )
-    val app = new GildedRose(items)
-    app.updateQuality()
-    extractItem(app.items(0)) should equal("foo", 0, 9)
-    extractItem(app.items(1)) should equal("foo", -1, 8)
-  }
-
   // More granular tests with the individual updateItem method
   "Sulfuras items" should "never change" in {
 
@@ -109,6 +97,27 @@ class GildedRoseTest extends AnyFlatSpec with Matchers with GildedRoseMatchers {
       (new Item("Backstage passes to a TAFKAL80ETC concert", 1, 51), ("Backstage passes to a TAFKAL80ETC concert", 0, 51)),
       (new Item("Backstage passes to a TAFKAL80ETC concert", 6, 51), ("Backstage passes to a TAFKAL80ETC concert", 5, 51)),
       (new Item("Backstage passes to a TAFKAL80ETC concert", 11, 51), ("Backstage passes to a TAFKAL80ETC concert", 10, 51)),
+    )
+    forAll(tests) {
+      case (item, expected) => GildedRose.updateItem(item) should matchItemValues(expected)
+    }
+  }
+
+  "Default Items" should "update as expected" in {
+    val tests = List(
+      (new Item("foo", 1, 10), ("foo", 0, 9)),
+      (new Item("foo", 0, 10), ("foo", -1, 8)),
+      (new Item("foo", 1, 51), ("foo", 0, 50)),
+    )
+    forAll(tests) {
+      case (item, expected) => GildedRose.updateItem(item) should matchItemValues(expected)
+    }
+  }
+
+  it should "not drop quality below 0" in {
+    val tests = List(
+      (new Item("foo", 1, 0), ("foo", 0, 0)),
+      (new Item("foo", 0, 1), ("foo", -1, 0)),
     )
     forAll(tests) {
       case (item, expected) => GildedRose.updateItem(item) should matchItemValues(expected)
