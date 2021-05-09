@@ -35,25 +35,6 @@ class GildedRoseTest extends AnyFlatSpec with Matchers with GildedRoseMatchers {
     extractItem(app.items(1)) should equal ("foo", -1, 8)
   }
 
-  "Brie Items" should "update as expected" in {
-    val items = Array[Item](
-      new Item("Aged Brie", 1, 10),
-      new Item("Aged Brie", 0, 10),
-      new Item("Aged Brie", 1, 50),
-      new Item("Aged Brie", 0, 50),
-      new Item("Aged Brie", 1, 0),
-      new Item("Aged Brie", 1, 51)
-    )
-    val app = new GildedRose(items)
-    app.updateQuality()
-    extractItem(app.items(0)) should equal ("Aged Brie", 0, 11)
-    extractItem(app.items(1)) should equal ("Aged Brie", -1, 12)
-    extractItem(app.items(2)) should equal ("Aged Brie", 0, 50)
-    extractItem(app.items(3)) should equal ("Aged Brie", -1, 50)
-    extractItem(app.items(4)) should equal ("Aged Brie", 0, 1)
-    extractItem(app.items(5)) should equal ("Aged Brie", 0, 51)
-  }
-
   "Backstage Items" should "update as expected" in {
     val items = Array[Item](
       new Item("Backstage passes to a TAFKAL80ETC concert", 11, 10),
@@ -84,7 +65,7 @@ class GildedRoseTest extends AnyFlatSpec with Matchers with GildedRoseMatchers {
   }
 
   // More granular tests with the individual updateItem method
-  "updateItem" should "not change Sulfuras items" in {
+  "Sulfuras items" should "never change" in {
 
     val tests = List(
       (new Item("Sulfuras, Hand of Ragnaros", 1, 80), ("Sulfuras, Hand of Ragnaros", 1, 80)),
@@ -93,6 +74,30 @@ class GildedRoseTest extends AnyFlatSpec with Matchers with GildedRoseMatchers {
       (new Item("Sulfuras, Hand of Ragnaros", -1, 80), ("Sulfuras, Hand of Ragnaros", -1, 80))
     )
 
+    forAll(tests) {
+      case (item, expected) => GildedRose.updateItem(item) should matchItemValues(expected)
+    }
+  }
+
+  "Aged Brie Items" should "update as expected" in {
+    val tests = List(
+      (new Item("Aged Brie", 1, 10), ("Aged Brie", 0, 11)),
+      (new Item("Aged Brie", 0, 10), ("Aged Brie", -1, 12)),
+      (new Item("Aged Brie", 1, 0), ("Aged Brie", 0, 1)),
+    )
+    forAll(tests) {
+      case (item, expected) => GildedRose.updateItem(item) should matchItemValues(expected)
+    }
+  }
+
+  it should "not exceed 50 quality" in {
+    val tests = List(
+      (new Item("Aged Brie", 1, 50), ("Aged Brie", 0, 50)),
+      (new Item("Aged Brie", 0, 50), ("Aged Brie", -1, 50)),
+      (new Item("Aged Brie", 0, 49), ("Aged Brie", -1, 50)),
+      // This case is from the original behaviour, it seems like a bug but the requirements are vague
+      (new Item("Aged Brie", 1, 51), ("Aged Brie", 0, 51))
+    )
     forAll(tests) {
       case (item, expected) => GildedRose.updateItem(item) should matchItemValues(expected)
     }
