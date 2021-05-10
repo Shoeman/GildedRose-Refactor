@@ -47,37 +47,31 @@ object GildedRose {
       return quality
     }
 
-    var newQuality = adjustBrieQuality(sellIn, quality)
+    val newQuality = adjustBrieQuality(sellIn, quality)
 
-    if (newQuality > 50) {
-      newQuality = 50
-    }
-    newQuality
+    capQuality(newQuality)
   }
 
-  def backstageQuality(sellIn: Int, quality: Int): Int = {
-    if (sellIn <= 0) {
-      return 0
-    }
+  val capQuality: Int => Int = Math.min(50, _)
 
-    // A quirk from the original behaviour is that is doesn't cap to 50 if it's already over
-    if (quality >= 50) {
-      return quality
-    }
-
-    val increase = sellIn match {
-      case x if x <= 5 => 3
-      case x if x <= 10 => 2
-      case _ => 1
-    }
-    var newQuality = quality + increase
-
-    if (newQuality > 50) {
-      newQuality = 50
-    }
-    newQuality
+  val preserveQuality: PartialFunction[(Int, Int), Int] = {
+    case (sellIn, quality) if quality >= 50 => quality
+  }
+  val expireQuality: PartialFunction[(Int, Int), Int] = {
+    case (sellIn, quality) if sellIn <= 0 => 0
   }
 
+  val adjustBackstageQuality: PartialFunction[(Int, Int), Int] = {
+    case (sellIn, quality) =>
+      val increase = sellIn match {
+        case x if x <= 5 => 3
+        case x if x <= 10 => 2
+        case _ => 1
+      }
+      quality + increase
+  }
+
+  val backstageQuality: PartialFunction[(Int, Int), Int] = expireQuality orElse preserveQuality orElse (adjustBackstageQuality andThen capQuality)
   val adjustBrieQuality: (Int, Int) => Int = adjustQuality(-1, -2)
   val adjustDefaultQuality: (Int, Int) => Int = adjustQuality(1, 2)
 
