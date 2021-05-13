@@ -14,6 +14,8 @@ class GildedRose(val items: Array[Item]) {
 
 object GildedRose {
 
+  import com.gildedrose.Compositions._
+
   def updateItem(item: Item): Item = {
     item.name match {
       case "Sulfuras, Hand of Ragnaros" => item
@@ -34,9 +36,6 @@ object GildedRose {
     new Item(name, sellIn - 1, newQuality)
   }
 
-  val capQuality: Int => Int = Math.min(50, _)
-  val floorQuality: Int => Int = Math.max(0, _)
-
   // Quirk from the original behaviour where quality doesn't update if it's already over 50
   val preserveQuality: PartialFunction[(Int, Int), Int] = {
     case (_, quality) if quality >= 50 => quality
@@ -50,29 +49,22 @@ object GildedRose {
     quality - decrease
   }
 
-  val adjustBrieQuality: (Int, Int) => Int = adjustQuality(-1, -2)
   val adjustDefaultQuality: (Int, Int) => Int = adjustQuality(1, 2)
-
-  val partialBrie: PartialFunction[(Int, Int), Int] = {
-    case (sellIn, quality) => adjustBrieQuality(sellIn, quality)
+  val adjustBrieQuality: (Int, Int) => Int = adjustQuality(-1, -2)
+  val adjustBackstageQuality: (Int, Int) => Int = (sellIn: Int, quality: Int) => {
+    val increase = sellIn match {
+      case x if x <= 5 => 3
+      case x if x <= 10 => 2
+      case _ => 1
+    }
+    quality + increase
   }
 
-  val partialDefault: PartialFunction[(Int, Int), Int] = {
-    case (sellIn, quality) => adjustDefaultQuality(sellIn, quality)
-  }
-
-  val adjustBackstageQuality: PartialFunction[(Int, Int), Int] = {
-    case (sellIn, quality) =>
-      val increase = sellIn match {
-        case x if x <= 5 => 3
-        case x if x <= 10 => 2
-        case _ => 1
-      }
-      quality + increase
-  }
+  val capQuality: Int => Int = Math.min(50, _)
+  val floorQuality: Int => Int = Math.max(0, _)
 
   // Compositions
-  val brieQuality: PartialFunction[(Int, Int), Int] = preserveQuality orElse (partialBrie andThen capQuality)
-  val backstageQuality: PartialFunction[(Int, Int), Int] = expireQuality orElse preserveQuality orElse (adjustBackstageQuality andThen capQuality)
-  val defaultQuality: PartialFunction[(Int, Int), Int] = partialDefault andThen floorQuality
+  val defaultQuality: (Int, Int) => Int = adjustDefaultQuality andThen floorQuality
+  val brieQuality: (Int, Int) => Int = preserveQuality orFun (adjustBrieQuality andThen capQuality)
+  val backstageQuality: (Int, Int) => Int = expireQuality orElse preserveQuality orFun (adjustBackstageQuality andThen capQuality)
 }

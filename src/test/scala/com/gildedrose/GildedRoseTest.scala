@@ -157,4 +157,15 @@ class GildedRoseTest extends AnyFlatSpec with Matchers with GildedRoseMatchers {
       case (sellIn, quality, expected) => GildedRose.adjustBrieQuality(sellIn, quality) should equal(expected)
     }
   }
+
+  "adjustBackstageQuality" should "alter by the correct amount" in {
+    val tests = List(
+      (1, 10, 13),
+      (6, 10, 12),
+      (11, 10, 11),
+    )
+    forAll(tests) {
+      case (sellIn, quality, expected) => GildedRose.adjustBackstageQuality(sellIn, quality) should equal(expected)
+    }
+  }
 }
