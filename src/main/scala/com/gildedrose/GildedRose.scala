@@ -51,7 +51,7 @@ object GildedRose {
 
   val adjustDefaultQuality: (Int, Int) => Int = adjustQuality(1, 2)
   val adjustBrieQuality: (Int, Int) => Int = adjustQuality(-1, -2)
-  val adjustBackstageQuality: (Int, Int) => Int = (sellIn: Int, quality: Int) => {
+  val adjustBackstageQuality: (Int, Int) => Int = (sellIn, quality) => {
     val increase = sellIn match {
       case x if x <= 5 => 3
       case x if x <= 10 => 2
